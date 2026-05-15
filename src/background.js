@@ -9,20 +9,27 @@ function getUrlFromRequest({ query, jiraUrl, ticketNumber } = {}) {
     }
 }
 
-async function processRequest(url, sendResponse) {
-    try {
-        try {
-            const response = await fetch(url, { headers: { accept: 'application/json' } })
-            sendResponse(await response.json());
-        } catch (e) {
-            console.error(`Failed to fetch: ${e.message}`);
-        }
-    } catch(e) {
-        console.error(e.message);
+async function processRequest(request) {
+    const url = getUrlFromRequest(request);
+
+    const response = await fetch(url, {
+        headers: { accept: 'application/json' }
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
     }
+
+    return response.json();
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    processRequest(getUrlFromRequest(request), sendResponse)
+    processRequest(request)
+        .then(sendResponse)
+        .catch(err => {
+            console.error(err);
+            sendResponse({ error: err.message });
+        });
+
     return true;
 });

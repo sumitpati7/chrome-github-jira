@@ -32,6 +32,8 @@ let prTitleEnabled = true;
 
 const REFRESH_TIMEOUT = 250;
 
+console.log("CONTENT SCRIPT LOADED");
+
 main().catch(err => console.error('Unexpected error', err))
 
 /////////////////////////////////
@@ -190,6 +192,8 @@ async function main(items) {
         // Checks the login
         const { name } = await sendMessage({ query: 'getSession', jiraUrl });
 
+        console.log(name)
+
         // Hook into the turbo render event, for subsequent navigation
         document.addEventListener('turbo:render', checkPage, { passive: true });
 
@@ -203,6 +207,7 @@ async function main(items) {
 
 
 function getJiraUrl(route = '') {
+    console.log(route)
     return `https://${jiraUrl}/browse/${route}`
 }
 
@@ -213,9 +218,14 @@ async function syncStorage(data) {
 }
 
 async function sendMessage(data) {
-    return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(data, resolve);
-    })
+    console.log("SEND MESSAGE:", data);
+
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage(data, (res) => {
+            console.log("RESPONSE:", res);
+            resolve(res);
+        });
+    });
 }
 
 
@@ -338,7 +348,7 @@ async function handlePrCreatePage() {
                 }
 
                 if (prTitleEnabled) {
-                    document.querySelector('input#pull_request_title').value = `[${ticketNumber.toUpperCase()}] ${summary}`;
+                    document.querySelector('input[name="pull_request[title]"]').value = `[${ticketNumber.toUpperCase()}] ${summary}`;
                 }
 
                 let description = orgDescription
