@@ -348,7 +348,20 @@ async function handlePrCreatePage() {
                 }
 
                 if (prTitleEnabled) {
-                    document.querySelector('input[name="pull_request[title]"]').value = `[${ticketNumber.toUpperCase()}] ${summary}`;
+                    const titleInput = document.querySelector('input[name="pull_request[title]"]');
+                    const desiredTitle = `[${ticketNumber.toUpperCase()}] ${summary}`;
+                    if (titleInput) {
+                        titleInput.value = desiredTitle;
+
+                        // Ensure the title isn't overwritten when the form is submitted
+                        const form = titleInput.closest('form') || body.closest('form');
+                        if (form && !form.getAttribute('data-jira-title-listener')) {
+                            const setTitle = () => { titleInput.value = desiredTitle; };
+                            form.addEventListener('submit', setTitle, true);
+                            form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(btn => btn.addEventListener('click', setTitle, true));
+                            form.setAttribute('data-jira-title-listener', 'true');
+                        }
+                    }
                 }
 
                 let description = orgDescription
