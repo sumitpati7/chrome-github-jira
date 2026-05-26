@@ -244,12 +244,35 @@ function checkPage() {
     }
 
     if (url.match(GITHUB_PAGE_PULLS) != null) {
-        //@todo PR overview page
+        onPageLoad()
     }
 
     if (url.match(GITHUB_PAGE_COMPARE) != null) {
         onPageChange(PAGE_PR_CREATE);
     }
+}
+
+function onPageLoad() {
+    document.querySelectorAll("div.js-issue-row").forEach((link) => {
+        const prLink = link.querySelector("a.markdown-title")
+        const prTitle = prLink.innerText;
+
+        const titleMatch = prTitle.match(/([a-zA-Z]+-[0-9]+)/);
+        if (titleMatch) {
+            ticketNumber = titleMatch[titleMatch.length - 1];
+            console.log(ticketNumber)
+            ticketUrl = getJiraUrl(ticketNumber);
+
+            const loadingElement = document.createElement('a');
+            loadingElement.innerText = `JIRA-${ticketNumber}`
+
+            // //Load up data from jira
+            console.log(ticketUrl)
+            loadingElement.href = ticketUrl
+            loadingElement.style = "padding-left: 61px"
+            link.appendChild(loadingElement)
+        }
+    })
 }
 
 
